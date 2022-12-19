@@ -1,0 +1,24 @@
+From ubuntu:latest
+
+WORKDIR /db-init
+
+RUN apt-get update -y
+
+RUN apt install -y jq
+
+RUN apt-get install -y python3-pip
+
+COPY ./requirements.txt .
+
+RUN pip3 install -r requirements.txt
+
+# COPY ../.aws-testing/ /root/.aws/
+ENV AWS_ACCESS_KEY_ID="key_id"
+ENV AWS_SECRET_ACCESS_KEY="key"
+ENV AWS_DEFAULT_REGION="test-region"
+
+COPY ./create-local-db.sh .
+
+EXPOSE 443
+
+ENTRYPOINT ["./create-local-db.sh"] 
