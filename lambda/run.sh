@@ -9,4 +9,4 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
 cd "${DIR}"
 
-DYNAMODB_ENDPOINT="http://localhost:8000" python handler_as_app.py
+DYNAMODB_ENDPOINT="http://dynamodb-local:8000" python3 handler_as_app.py

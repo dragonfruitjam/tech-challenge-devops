@@ -1,0 +1,23 @@
+From ubuntu:latest
+
+WORKDIR /local-api
+
+RUN apt-get update -y
+
+RUN apt-get install -y python3 python3-pip python3.10-venv
+
+COPY . .
+
+RUN python3 -m venv .venv
+
+RUN . .venv/bin/activate
+
+RUN pip3 install -r journey-requirements.txt
+
+ENV AWS_ACCESS_KEY_ID="key_id"
+ENV AWS_SECRET_ACCESS_KEY="key"
+ENV AWS_DEFAULT_REGION="test-region"
+
+EXPOSE 8080
+
+ENTRYPOINT ["./run.sh"] 

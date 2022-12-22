@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  db-local-initiator:
+    build: ./local-db-initiator
+    depends_on:
+      - dynamodb-local
+  api-app:
+    build: ./lambda
+    depends_on:
+      - dynamodb-local
+    ports:
+      - 8080:8080
