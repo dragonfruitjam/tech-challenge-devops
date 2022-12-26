@@ -59,17 +59,11 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
 EOF
 }
 
-resource "aws_lambda_function" "example_function" {
+resource "aws_lambda_function" "airport_endpoint_function" {
   filename         = "lambda_function.zip"
   function_name    = "airport-endpoints"
   role             = aws_iam_role.lambda_exec_role.arn
-  handler          = "lambda.handler_airport.lambda_handler"
+  handler          = "handler_airport.lambda_handler"
   runtime          = "python3.9"
   source_code_hash = filebase64sha256("lambda_function.zip")
-  
-  environment {
-    variables = {
-      TABLE_NAME = "example-table"
-    }
-  }
 }
