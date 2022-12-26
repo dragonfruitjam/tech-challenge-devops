@@ -5,7 +5,7 @@ function put_airport() {
     json="{\"id\": {\"S\": \"$1\"}, \"name\": {\"S\": \"$2\"}, \"latitude\": {\"S\": \"$3\"}, \"longitude\": {\"S\": \"$4\"}, \"connections\": {\"L\": [$connections]}}"
     echo "${json}"
     aws dynamodb put-item \
-        --table-name airport-table  \
+        --table-name airport  \
         --item "$json"
 }
 
