@@ -61,7 +61,7 @@ EOF
 
 resource "aws_lambda_function" "example_function" {
   filename         = "lambda_function.zip"
-  function_name    = "read-all-airports"
+  function_name    = "airport-endpoints"
   role             = aws_iam_role.lambda_exec_role.arn
   handler          = "lambda.handler_airport.lambda_handler"
   runtime          = "python3.9"

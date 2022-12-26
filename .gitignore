@@ -11,6 +11,8 @@
 # Built Visual Studio Code Extensions
 *.vsix
 
+*.zip
+
 .DS_Store
 
 docker/*
