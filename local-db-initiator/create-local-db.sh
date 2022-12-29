@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ -z "${DYNAMODB_ENDPOINT}" ]]; then
+  DYNAMODB_ENDPOINT_VARIABLE="localhost"
+else
+  DYNAMODB_ENDPOINT_VARIABLE="${DYNAMODB_ENDPOINT}"
+fi
 
 function put_airport() {
     connections=$(echo "$5" | jq -c '.[] | {"M": {"id":{"S": .id}, "miles":{"N": .miles|tostring}} }' | tr '\n', ',' | rev | cut -c2- | rev )
@@ -7,12 +12,12 @@ function put_airport() {
     aws dynamodb put-item \
         --table-name airport  \
         --item "$json" \
-        --endpoint-url http://dynamodb-local:8000
+        --endpoint-url http://${DYNAMODB_ENDPOINT_VARIABLE}:8000
 }
 
 aws dynamodb delete-table \
     --table-name airport \
-    --endpoint-url http://dynamodb-local:8000
+    --endpoint-url http://${DYNAMODB_ENDPOINT_VARIABLE}:8000
 
 aws dynamodb create-table \
     --table-name airport \
@@ -22,7 +27,7 @@ aws dynamodb create-table \
         AttributeName=id,KeyType=HASH \
     --provisioned-throughput \
         ReadCapacityUnits=10,WriteCapacityUnits=5 \
-    --endpoint-url http://dynamodb-local:8000
+    --endpoint-url http://${DYNAMODB_ENDPOINT_VARIABLE}:8000
 
 put_airport "IST" "Istanbul Airport" "41.262222" "28.727778" '[{"id":"ATH", "miles": 100}, {"id":"AMS", "miles": 1200}, {"id":"SVO", "miles": 800}, {"id":"VIE", "miles": 750}]'
 put_airport "CDG" "Charles de Gaulle Airport" "49.009722" "2.547778" '[{"id":"ORY", "miles": 10}, {"id":"LHR", "miles": 100}, {"id":"AMS", "miles": 120}, {"id":"FRA", "miles": 130}, {"id":"ZRH", "miles": 120}, {"id":"FCO", "miles": 500}, {"id":"LIS", "miles": 750}, {"id":"MAD", "miles": 600}]'

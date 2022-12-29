@@ -9,4 +9,12 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
 cd "${DIR}"
 
-DYNAMODB_ENDPOINT="http://dynamodb-local:8000" python3 handler_as_app.py
+if [[ -z "${DYNAMODB_ENDPOINT_ENV}" ]]; then
+  echo "No environment variable"
+  DYNAMODB_ENDPOINT="http://localhost:8000" python3 handler_as_app.py
+else
+  echo "environment variable"
+  echo $DYNAMODB_ENDPOINT_ENV
+  DYNAMODB_ENDPOINT="http://${DYNAMODB_ENDPOINT_ENV}:8000" python3 handler_as_app.py
+fi
+
