@@ -9,3 +9,15 @@
 ```bash
 curl http://localhost:8080/airport
 ```
+
+## Running unit tests
+### Instructions
+1. Follow the steps to deploy a local database and api gateway on your machine
+2. In a new terminal go to the test directory on this repo
+```bash
+$ cd path/to/repo/tests
+```
+3. Run the command:
+```
+$ python3 test-endpoint.py
+```
