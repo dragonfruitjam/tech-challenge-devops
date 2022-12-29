@@ -2,6 +2,7 @@ provider "aws" {
   region = "us-west-2"
 }
 
+# dynamodb
 resource "aws_dynamodb_table" "airport" {
   name           = "airport"
   hash_key = "id"
@@ -14,6 +15,15 @@ resource "aws_dynamodb_table" "airport" {
   }
 }
 
+# lambda function 
+resource "aws_lambda_function" "airport_endpoint_function" {
+  filename         = "lambda_function.zip"
+  function_name    = "airport-endpoints"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "handler_airport.lambda_handler"
+  runtime          = "python3.9"
+  source_code_hash = filebase64sha256("lambda_function.zip")
+}
 resource "aws_iam_role" "lambda_exec_role" {
   name = "lambda_exec_role"
 
@@ -33,7 +43,6 @@ resource "aws_iam_role" "lambda_exec_role" {
 }
 EOF
 }
-
 resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
   name = "lambda_dynamodb_policy"
   role = aws_iam_role.lambda_exec_role.id
@@ -57,15 +66,6 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
   ]
 }
 EOF
-}
-
-resource "aws_lambda_function" "airport_endpoint_function" {
-  filename         = "lambda_function.zip"
-  function_name    = "airport-endpoints"
-  role             = aws_iam_role.lambda_exec_role.arn
-  handler          = "handler_airport.lambda_handler"
-  runtime          = "python3.9"
-  source_code_hash = filebase64sha256("lambda_function.zip")
 }
 
 resource "aws_api_gateway_rest_api" "airport_apigw" {
