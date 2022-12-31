@@ -11,67 +11,78 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up DynamoDB Local
-      uses: rrainn/dynamodb-action@v2.0.1
-      with:
-        port: 8000
-        cors: '*'
-    - name: Initialise DynamoDB Local
-      run: |
-        cd local-db-initiator
-        ./create-local-db.sh
-      env:
-        AWS_DEFAULT_REGION: "fake-region"
-        AWS_ACCESS_KEY_ID: "key_id"
-        AWS_SECRET_ACCESS_KEY: "key"
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-    - name: Build app
-      run: |
-        cd lambda
-        if [ -f journey-requirements.txt ]; then pip install -r journey-requirements.txt; fi
-        ./run.sh &
-      env:
-        AWS_DEFAULT_REGION: "fake-region"
-        AWS_ACCESS_KEY_ID: "key_id"
-        AWS_SECRET_ACCESS_KEY: "key"
-    - name: Test with pytest
-      run: |
-        sleep 10
-        cd tests/
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        python3 test-endpoint.py
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Set up DynamoDB Local
+  #     uses: rrainn/dynamodb-action@v2.0.1
+  #     with:
+  #       port: 8000
+  #       cors: '*'
+  #   - name: Initialise DynamoDB Local
+  #     run: |
+  #       cd local-db-initiator
+  #       ./create-local-db.sh
+  #     env:
+  #       AWS_DEFAULT_REGION: "fake-region"
+  #       AWS_ACCESS_KEY_ID: "key_id"
+  #       AWS_SECRET_ACCESS_KEY: "key"
+  #   - name: Set up Python 3.10
+  #     uses: actions/setup-python@v3
+  #     with:
+  #       python-version: "3.10"
+  #   - name: Install dependencies
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #   - name: Build app
+  #     run: |
+  #       cd lambda
+  #       if [ -f journey-requirements.txt ]; then pip install -r journey-requirements.txt; fi
+  #       ./run.sh &
+  #     env:
+  #       AWS_DEFAULT_REGION: "fake-region"
+  #       AWS_ACCESS_KEY_ID: "key_id"
+  #       AWS_SECRET_ACCESS_KEY: "key"
+  #   - name: Test with pytest
+  #     run: |
+  #       sleep 10
+  #       cd tests/
+  #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+  #       python3 test-endpoint.py
   validate:
-    needs: [ test ]
+    # needs: [ test ]
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v2
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
+      - name: Zip lambda function
+        working-directory: lambda
+        run: zip -r ../terraform/infra/lambda_function.zip .
       - name: Validate Terraform
         working-directory: terraform/infra
         run: |
-          terraform init
+          terraform init -backend-config="access_key=$AWS_ACCESS_KEY_ID" -backend-config="secret_key=$AWS_SECRET_ACCESS_KEY"
           terraform validate
+          terraform plan
 
   deploy:
     needs: [ validate ]
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
     - uses: actions/checkout@v2
-    - name: deploy aws resources
+    - name: Zip lambda function
+      working-directory: lambda
+      run: zip -r ../terraform/infra/lambda_function.zip .
+    - name: Deploy aws resources
+      working-directory: terraform/infra
       run: |
-        cd terraform/infra
-        terraform apply -auto-approve  
+        terraform init
+        terraform plan
