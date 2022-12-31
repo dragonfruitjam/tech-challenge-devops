@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -57,14 +57,15 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
       - name: Validate Terraform
-        run: terraform validate
+        run: |
+          cd terraform/infra
+          terraform validate
 
   deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: hashicorp/terraform-github-actions@v2.0.0
-      with:
-        tf_actions_version: 0.13.5
-        tf_actions_subcommand: apply
-        tf_actions_working_dir: terraform/infra
+    - name: deploy aws resources
+      run: |
+        cd terraform/infra
+        terraform apply -auto-approve  
