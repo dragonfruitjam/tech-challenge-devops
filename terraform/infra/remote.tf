@@ -4,6 +4,6 @@ terraform {
     bucket   = "airport-api-tf"
     key      = "infra.tfstate"
     region   = "us-west-2"
-    dynamodb_table = "airportapitflock"
+    dynamodb_table = "airport-api-tflock"
   }
 }
