@@ -4,8 +4,6 @@
 name: Airport API CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -14,9 +12,7 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up DynamoDB Local
@@ -54,4 +50,21 @@ jobs:
         cd tests/
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python3 test-endpoint.py
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Validate Terraform
+        run: terraform validate
 
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hashicorp/terraform-github-actions@v2.0.0
+      with:
+        tf_actions_version: 0.13.5
+        tf_actions_subcommand: apply
+        tf_actions_working_dir: terraform/infra
