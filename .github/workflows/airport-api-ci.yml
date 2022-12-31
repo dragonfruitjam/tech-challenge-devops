@@ -1,6 +1,5 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Airport API CI
 
 on:
@@ -69,20 +68,3 @@ jobs:
           terraform init
           terraform validate
           terraform plan
-
-  deploy:
-    needs: [ validate ]
-    runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    steps:
-    - uses: actions/checkout@v2
-    - name: Zip lambda function
-      working-directory: lambda
-      run: zip -r ../terraform/infra/lambda_function.zip .
-    - name: Deploy aws resources
-      working-directory: terraform/infra
-      run: |
-        terraform init
-        terraform apply -auto-approve
