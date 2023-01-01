@@ -20,4 +20,4 @@ jobs:
       working-directory: terraform/infra
       run: |
         terraform init
-        terraform destroy
+        terraform destroy -auto-approved
