@@ -120,7 +120,7 @@ resource "aws_lambda_permission" "apigw-airport_endpoint_function" {
 }
 resource "aws_api_gateway_deployment" "productapistageprod" {
   depends_on = [
-    aws_api_gateway_integration.airport-lambda
+    aws_api_gateway_integration.airport-lambda,
     aws_api_gateway_integration.airport-lambda-single
   ]
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
