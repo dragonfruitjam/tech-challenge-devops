@@ -1,0 +1,23 @@
+name: Airport API Terraform Destroy
+on: [workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-west-2
+    steps:
+    - uses: actions/checkout@v2
+    - name: Zip lambda function
+      working-directory: lambda
+      run: zip -r ../terraform/infra/lambda_function.zip .
+    - name: Deploy aws resources
+      working-directory: terraform/infra
+      run: |
+        terraform init
+        terraform destroy
