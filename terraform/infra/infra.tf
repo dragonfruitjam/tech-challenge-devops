@@ -75,12 +75,23 @@ resource "aws_api_gateway_rest_api" "airport_apigw" {
     types = ["REGIONAL"]
   }
 }
-resource "aws_api_gateway_resource" "airport" {
+resource "aws_api_gateway_resource" "airports" {
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
   parent_id   = aws_api_gateway_rest_api.airport_apigw.root_resource_id
   path_part   = "airport"
 }
 resource "aws_api_gateway_method" "readallairports" {
+  rest_api_id   = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id   = aws_api_gateway_resource.airports.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+resource "aws_api_gateway_resource" "airport" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  parent_id   = aws_api_gateway_resource.airports.id
+  path_part   = "{id}"
+}
+resource "aws_api_gateway_method" "readairport" {
   rest_api_id   = aws_api_gateway_rest_api.airport_apigw.id
   resource_id   = aws_api_gateway_resource.airport.id
   http_method   = "GET"
