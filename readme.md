@@ -21,3 +21,15 @@ $ cd path/to/repo/tests
 ```
 $ python3 test-endpoint.py
 ```
+
+## CI/CD
+This repository is implemented to follow a CI/CD workflow.
+When a pull request is made with the main branch as the target, the code will be tested. If the tests pass, the code can be used to depoy resources on aws.
+
+### Destroying AWS resources
+To destroy the resources related to this project, you can run the job on Github (https://github.com/dragonfruitjam/tech-challenge-devops/actions):  
+1. Select the `Airport API Terraform Destroy` workflow
+2. Click `Run workflow` button
+3. Select the branch as `main` and click `Run workflow` to start the job to destroy AWS resources
+4. Wait for the job to complete
+5. Check AWS to see if the resources have been destroyed
