@@ -120,14 +120,15 @@ resource "aws_lambda_permission" "apigw-airport_endpoint_function" {
 }
 resource "aws_api_gateway_deployment" "productapistageprod" {
   depends_on = [
-    aws_api_gateway_integration.airport-lambda
+    aws_api_gateway_integration.airport-lambda,
+    aws_api_gateway_integration.airport-lambda-single
   ]
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
   stage_name  = "prod"
 }
 resource "aws_api_gateway_integration_response" "myintegrationresponse" {
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
-  resource_id = aws_api_gateway_resource.airport.id
+  resource_id = aws_api_gateway_resource.airports.id
   http_method = aws_api_gateway_method.readallairports.http_method
   status_code = "200"
 
@@ -142,7 +143,7 @@ resource "aws_api_gateway_integration_response" "myintegrationresponse" {
 }
 resource "aws_api_gateway_method_response" "mymethodresponse" {
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
-  resource_id = aws_api_gateway_resource.airport.id
+  resource_id = aws_api_gateway_resource.airports.id
   http_method = aws_api_gateway_method.readallairports.http_method
   status_code = 200
 
@@ -152,5 +153,48 @@ resource "aws_api_gateway_method_response" "mymethodresponse" {
 
   depends_on = [
     aws_api_gateway_method.readallairports,
+  ]
+}
+
+# apigateway lambda function integration 
+resource "aws_api_gateway_integration" "airport-lambda-single" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_method.readairport.resource_id
+  http_method = aws_api_gateway_method.readairport.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri = aws_lambda_function.airport_endpoint_function.invoke_arn
+
+  request_templates = {
+    "application/json" = "{ \"statusCode\": 200 }"
+  }
+}
+resource "aws_api_gateway_integration_response" "myintegrationresponse-1" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_resource.airport.id
+  http_method = aws_api_gateway_method.readairport.http_method
+  status_code = "200"
+
+  response_templates = {
+    "application/json" = ""
+  } 
+
+  depends_on = [
+    aws_api_gateway_integration.airport-lambda-single,
+    aws_api_gateway_method_response.mymethodresponse-single
+  ]
+}
+resource "aws_api_gateway_method_response" "mymethodresponse-single" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_resource.airport.id
+  http_method = aws_api_gateway_method.readairport.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  depends_on = [
+    aws_api_gateway_method.readairport,
   ]
 }
