@@ -15,15 +15,7 @@ resource "aws_dynamodb_table" "airport" {
   }
 }
 
-# lambda function 
-resource "aws_lambda_function" "airport_endpoint_function" {
-  filename         = "lambda_function.zip"
-  function_name    = "airport-endpoints"
-  role             = aws_iam_role.lambda_exec_role.arn
-  handler          = "handler_airport.lambda_handler"
-  runtime          = "python3.9"
-  source_code_hash = filebase64sha256("lambda_function.zip")
-}
+# roles required by lambda functions
 resource "aws_iam_role" "lambda_exec_role" {
   name = "lambda_exec_role"
 
@@ -66,6 +58,16 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
   ]
 }
 EOF
+}
+
+# lambda function 
+resource "aws_lambda_function" "airport_endpoint_function" {
+  filename         = "airport_lambda_function.zip"
+  function_name    = "airport-endpoints"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "handler_airport.lambda_handler"
+  runtime          = "python3.9"
+  source_code_hash = filebase64sha256("airport_lambda_function.zip")
 }
 
 resource "aws_api_gateway_rest_api" "airport_apigw" {
@@ -121,7 +123,8 @@ resource "aws_lambda_permission" "apigw-airport_endpoint_function" {
 resource "aws_api_gateway_deployment" "productapistageprod" {
   depends_on = [
     aws_api_gateway_integration.airport-lambda,
-    aws_api_gateway_integration.airport-lambda-single
+    aws_api_gateway_integration.airport-lambda-single,
+    aws_api_gateway_integration.journey-lambda
   ]
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
   stage_name  = "prod"
@@ -157,6 +160,14 @@ resource "aws_api_gateway_method_response" "mymethodresponse" {
 }
 
 # apigateway lambda function integration 
+resource "aws_lambda_function" "journey_endpoint_function" {
+  filename         = "journey_lambda_function.zip"
+  function_name    = "journey-endpoints"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "handler_journey.lambda_handler"
+  runtime          = "python3.9"
+  source_code_hash = filebase64sha256("journey_lambda_function.zip")
+}
 resource "aws_api_gateway_integration" "airport-lambda-single" {
   rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
   resource_id = aws_api_gateway_method.readairport.resource_id
@@ -197,4 +208,74 @@ resource "aws_api_gateway_method_response" "mymethodresponse-single" {
   depends_on = [
     aws_api_gateway_method.readairport,
   ]
+}
+
+# apigateway journey lambda function integration 
+resource "aws_lambda_permission" "apigw-journey_endpoint_function" {
+  action        = "lambda:InvokeFunction"
+  statement_id  = "AllowJourneyInvoke"
+  function_name = aws_lambda_function.journey_endpoint_function.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn = "${aws_api_gateway_rest_api.airport_apigw.execution_arn}/*/*/*"
+}
+resource "aws_api_gateway_resource" "to" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  parent_id   = aws_api_gateway_resource.airport.id
+  path_part   = "to"
+}
+resource "aws_api_gateway_resource" "to-airport-id" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  parent_id   = aws_api_gateway_resource.to.id
+  path_part   = "{toId}"
+}
+resource "aws_api_gateway_method" "journey" {
+  rest_api_id   = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id   = aws_api_gateway_resource.to-airport-id.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+resource "aws_api_gateway_integration" "journey-lambda" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_method.journey.resource_id
+  http_method = aws_api_gateway_method.journey.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri = aws_lambda_function.journey_endpoint_function.invoke_arn
+
+  request_templates = {
+    "application/json" = "{ \"statusCode\": 200 }"
+  }
+}
+resource "aws_api_gateway_integration_response" "journey-integration-response" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_resource.to-airport-id.id
+  http_method = aws_api_gateway_method.journey.http_method
+  status_code = "200"
+
+  response_templates = {
+    "application/json" = ""
+  } 
+
+  depends_on = [
+    aws_api_gateway_integration.journey-lambda,
+    aws_api_gateway_method_response.journey-method-response
+  ]
+}
+resource "aws_api_gateway_method_response" "journey-method-response" {
+  rest_api_id = aws_api_gateway_rest_api.airport_apigw.id
+  resource_id = aws_api_gateway_resource.to-airport-id.id
+  http_method = aws_api_gateway_method.journey.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  depends_on = [
+    aws_api_gateway_method.journey,
+  ]
+}
+
+output "airport_api_invoke_url" {
+  value = aws_api_gateway_deployment.productapistageprod.invoke_url
 }
