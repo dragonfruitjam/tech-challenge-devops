@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Zip lambda functions
       working-directory: terraform
-        run: ./package-lambda-functions.sh  
+      run: ./package-lambda-functions.sh  
     - name: Deploy aws resources
       working-directory: terraform/infra
       run: |
