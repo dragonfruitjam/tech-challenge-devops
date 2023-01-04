@@ -37,7 +37,7 @@ jobs:
     - name: Build app
       run: |
         cd lambda
-        if [ -f journey-requirements.txt ]; then pip install -r journey-requirements.txt; fi
+        if [ -f github-test-requirements.txt ]; then pip install -r github-test-requirements.txt; fi
         ./run.sh &
       env:
         AWS_DEFAULT_REGION: "fake-region"
@@ -59,9 +59,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
-      - name: Zip lambda function
-        working-directory: lambda
-        run: zip -r ../terraform/infra/lambda_function.zip .
+      - name: Zip lambda functions
+        working-directory: terraform
+        run: ./package-lambda-functions.sh  
       - name: Validate Terraform
         working-directory: terraform/infra
         run: |
