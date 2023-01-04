@@ -37,7 +37,7 @@ jobs:
     - name: Build app
       run: |
         cd lambda
-        if [ -f journey-requirements.txt ]; then pip install -r journey-requirements.txt; fi
+        if [ -f github-test-requirements.txt ]; then pip install -r github-test-requirements.txt; fi
         ./run.sh &
       env:
         AWS_DEFAULT_REGION: "fake-region"
