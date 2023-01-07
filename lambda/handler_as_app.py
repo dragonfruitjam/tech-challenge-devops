@@ -1,5 +1,6 @@
 from endpoints.airport_endpoint import AirportEndpoint
 from endpoints.journey_endpoint import JourneyEndpoint
+from endpoints.vehicle_endpoint import VehicleEndpoint
 from exceptions.not_implemented_exception import NotImplementedException
 from exceptions.not_found_exception import NotFoundException
 from exceptions.bad_request_exception import BadRequestException
@@ -11,7 +12,8 @@ import logging
 MAPPINGS = {
     "/airport": AirportEndpoint,
     "/airport/{id}": AirportEndpoint,
-    "/airport/{id}/to/{toId}": JourneyEndpoint
+    "/airport/{id}/to/{toId}": JourneyEndpoint,
+    "/vehicle/{numberOfPeople}/{distance}": VehicleEndpoint
 }
 
 
@@ -57,24 +59,38 @@ def to_single_value_params(path):
 
 
 def path_to_path_info(path):
+    print("path:", path)
     if "/bulk/" in path:
         return {
-        "resource": path,
-        "params": {},
-        "path": path
-    }
+            "resource": path,
+            "params": {},
+            "path": path
+        }
     splitPaths = path.split("?")[0].strip("/").split("/")
     resource = []
     params = {}
-    for i, path in enumerate(splitPaths):
-        if i % 2 != 0:
-            param_name = "id"
-            if i != 1:
-                param_name = resource[-1] + "Id"
-            resource.append("{" + param_name + "}")
-            params[param_name] = path
-        else:
-            resource.append(path)
+    if path.startswith("/vehicle/"):
+        vehicle_params = ["numberOfPeople","distance"]
+        for i, path in enumerate(splitPaths):
+            if i > 0 and 0<=2:
+                if path.isdigit():
+                    param_name = vehicle_params[i-1]
+                else:
+                    param_name = "not_int"
+                resource.append("{" + param_name + "}")
+                params[param_name] = path
+            else:
+                resource.append(path)
+    else:
+        for i, path in enumerate(splitPaths):
+            if i % 2 != 0:
+                param_name = "id"
+                if i != 1:
+                    param_name = resource[-1] + "Id"
+                resource.append("{" + param_name + "}")
+                params[param_name] = path
+            else:
+                resource.append(path)
     return {
         "resource": "/" + "/".join(resource),
         "params": params,
