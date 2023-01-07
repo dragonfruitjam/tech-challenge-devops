@@ -33,3 +33,10 @@ To destroy the resources related to this project, you can run the job on Github 
 3. Select the branch as `main` and click `Run workflow` to start the job to destroy AWS resources
 4. Wait for the job to complete
 5. Check AWS to see if the resources have been destroyed
+
+## Future work
+1. Ask client how booking fee should work if miles traveled is zero
+2. Make airport queries case insensitive
+3. Implement open api lambda integration
+4. Implement logging so error messages are not passed back to users
+5. Move Github repo to organisational account to implement branch protection

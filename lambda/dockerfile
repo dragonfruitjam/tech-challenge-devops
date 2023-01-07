@@ -12,7 +12,7 @@ RUN python3 -m venv .venv
 
 RUN . .venv/bin/activate
 
-RUN pip3 install -r journey-requirements.txt
+RUN pip3 install -r github-test-requirements.txt
 
 ENV AWS_ACCESS_KEY_ID="key_id"
 ENV AWS_SECRET_ACCESS_KEY="key"
