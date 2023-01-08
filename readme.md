@@ -26,6 +26,16 @@ $ python3 test-endpoint.py
 This repository is implemented to follow a CI/CD workflow.
 When a pull request is made with the main branch as the target, the code will be tested. If the tests pass, the code can be used to depoy resources on aws.
 
+To deploy the infrastructure, simply merge the pull request into main.
+
+You can see the progress of the deployment in the following page: https://github.com/dragonfruitjam/tech-challenge-devops/actions/workflows/airport-api-cd.yml.
+
+At the end of the `Deploy aws resources` job, the url generated to access the api gateway is output at the bottom. e.g.
+```
+airport_api_invoke_url = "https://url/to/api/gateway"
+```
+The github link above can also be used to manually deploy the aws resources after they have been manually destroyed
+
 ### Destroying AWS resources
 To destroy the resources related to this project, you can run the job on Github (https://github.com/dragonfruitjam/tech-challenge-devops/actions):  
 1. Select the `Airport API Terraform Destroy` workflow
